@@ -20,5 +20,11 @@ if (!context.Database.CanConnect())
     return;
 }
 
+Console.WriteLine("DB is connected");
+
 DataGenerator.ClearDatabase(context);
 DataGenerator.ParseSource(context);
+DataGenerator.GenerateOffices(context);
+DataGenerator.GenerateEmployees(context);
+DataGenerator.GeneratePatients(context);
+DataGenerator.GenerateAppointmentsAndOrders(context);
