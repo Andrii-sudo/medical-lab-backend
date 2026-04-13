@@ -551,29 +551,115 @@ internal static class DataGenerator
         }
 
         context.SaveChanges();
+
+
+        static decimal? GenerateMeasuredValue(ParameterNorm? norm, bool isNormal)
+        {
+            if (norm is null) return null;
+
+            decimal min = norm.MinValue ?? 0m;
+            decimal max = norm.MaxValue ?? min * 2;
+
+            if (min == 0 && max == 0) return null;
+
+            if (isNormal)
+            {
+                return Math.Round(min + (decimal)_random.NextDouble() * (max - min), 3);
+            }
+
+            if (_random.Next(2) == 0)
+            {
+                return Math.Round(min * (decimal)(0.3 + _random.NextDouble() * 0.5), 3);
+            }
+            else
+            {
+                return Math.Round(max * (decimal)(1.2 + _random.NextDouble() * 0.8), 3);
+            }
+        }
     }
 
-    private static decimal? GenerateMeasuredValue(ParameterNorm? norm, bool isNormal)
+    internal static void AssignUsersToFirstRecords(MedicalLabsContext context)
     {
-        if (norm is null) return null;
-
-        decimal min = norm.MinValue ?? 0m;
-        decimal max = norm.MaxValue ?? min * 2;
-
-        if (min == 0 && max == 0) return null;
-
-        if (isNormal)
+        var admRole = context.Roles.FirstOrDefault(r => r.NormalizedName == "ADMIN");
+        if (admRole == null)
         {
-            return Math.Round(min + (decimal)_random.NextDouble() * (max - min), 3);
+            admRole = new IdentityRole<int> { Name = "Admin", NormalizedName = "ADMIN" };
+            context.Roles.Add(admRole);
         }
 
-        if (_random.Next(2) == 0)
+        var empRole = context.Roles.FirstOrDefault(r => r.NormalizedName == "EMPLOYEE");
+        if (empRole == null)
         {
-            return Math.Round(min * (decimal)(0.3 + _random.NextDouble() * 0.5), 3);
+            empRole = new IdentityRole<int> { Name = "Employee", NormalizedName = "EMPLOYEE" };
+            context.Roles.Add(empRole);
         }
-        else
+
+        var patRole = context.Roles.FirstOrDefault(r => r.NormalizedName == "PATIENT");
+        if (patRole == null)
         {
-            return Math.Round(max * (decimal)(1.2 + _random.NextDouble() * 0.8), 3);
+            patRole = new IdentityRole<int> { Name = "Patient", NormalizedName = "PATIENT" };
+            context.Roles.Add(patRole);
         }
+        context.SaveChanges();
+
+        var patient  = context.Patients.OrderBy(p => p.Id).First();
+        var admin    = context.Employees.OrderBy(e => e.Id).First();
+        var employee = context.Employees.OrderBy(e => e.Id).Skip(1).First();
+
+        string patPassword = "patient123";
+        string admPassword = "admin123";
+        string empPassword = "employee123";
+
+        var hasher = new PasswordHasher<AppUser>();
+
+        var admUser = new AppUser
+        {
+            UserName = admin.Email,
+            NormalizedUserName = admin.Email.ToUpper(),
+            Email = admin.Email,
+            NormalizedEmail = admin.Email.ToUpper(),
+            EmployeeId = admin.Id,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        admUser.PasswordHash = hasher.HashPassword(admUser, admPassword);
+
+        var empUser = new AppUser
+        {
+            UserName = employee.Email,
+            NormalizedUserName = employee.Email.ToUpper(),
+            Email = employee.Email,
+            NormalizedEmail = employee.Email.ToUpper(),
+            EmployeeId = employee.Id, 
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        empUser.PasswordHash = hasher.HashPassword(empUser, empPassword);
+
+        var patUser = new AppUser
+        {
+            UserName = patient.Phone,
+            NormalizedUserName = patient.Phone,
+            PhoneNumber = patient.Phone,
+            PatientId = patient.Id, 
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        patUser.PasswordHash = hasher.HashPassword(patUser, patPassword);
+
+        context.Users.AddRange(admUser, empUser, patUser);
+        context.SaveChanges();
+
+        context.UserRoles.AddRange(
+            new IdentityUserRole<int> { UserId = admUser.Id, RoleId = admRole.Id },
+            new IdentityUserRole<int> { UserId = empUser.Id, RoleId = empRole.Id },
+            new IdentityUserRole<int> { UserId = patUser.Id, RoleId = patRole.Id }
+        );
+
+        context.SaveChanges();
+
+        Console.WriteLine($"Patient,  phone: {patUser.PhoneNumber} password: {patPassword}");
+        Console.WriteLine($"Employee, email: {empUser.Email} password: {empPassword}");
+        Console.WriteLine($"Admin,    email: {admUser.Email} password: {admPassword}");
     }
 }
