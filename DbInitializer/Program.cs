@@ -28,3 +28,6 @@ DataGenerator.GenerateOffices(context);
 DataGenerator.GenerateEmployees(context);
 DataGenerator.GeneratePatients(context);
 DataGenerator.GenerateAppointmentsAndOrders(context);
+DataGenerator.AssignUsersToFirstRecords(context);
+
+Console.WriteLine("\nDatabase initialization completed successfully");

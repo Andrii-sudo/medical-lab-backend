@@ -49,19 +49,14 @@ namespace LabAPI.Services
             return null;
         }
 
-        public async Task<string> GenerateTokenString(AppUser identityUser)
+        public async Task<string> GenerateToken(AppUser identityUser)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, identityUser.Id.ToString()),
+                new Claim(ClaimTypes.Role, await GetUserRole(identityUser))
             };
-
-            var roles = await _userManager.GetRolesAsync(identityUser);
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
+            
             string jwtKey = _config["Jwt:Key"]
                 ?? throw new Exception("JWT Key is missing in secrets");
 
@@ -69,7 +64,7 @@ namespace LabAPI.Services
             
             var signingCredentials = new SigningCredentials(
                 securityKey, 
-                SecurityAlgorithms.HmacSha512Signature);
+                SecurityAlgorithms.HmacSha256Signature);
 
             SecurityToken securityToken = new JwtSecurityToken(
                 claims: claims,
@@ -80,6 +75,11 @@ namespace LabAPI.Services
 
 
             return new JwtSecurityTokenHandler().WriteToken(securityToken);
+        }
+
+        public async Task<string> GetUserRole(AppUser identityUser)
+        {
+            return (await _userManager.GetRolesAsync(identityUser)).Single();
         }
     }
 }
