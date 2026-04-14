@@ -53,6 +53,15 @@ public static class ServiceExtensions
                 ValidAudience = config["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
             };
+            // Щоб читати з cookie
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    context.Token = context.Request.Cookies["jwt_token"];
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         return services;
@@ -66,7 +75,8 @@ public static class ServiceExtensions
             {
                 policy.WithOrigins(config["Cors:Origin"]!)
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
 

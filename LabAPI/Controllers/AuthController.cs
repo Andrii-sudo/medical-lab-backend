@@ -1,6 +1,7 @@
 ﻿using LabAPI.DTOs;
 using LabAPI.Models;
 using LabAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabAPI.Controllers
@@ -22,11 +23,22 @@ namespace LabAPI.Controllers
             var identityUser = await _authService.LoginEmployee(request);
             if (identityUser != null)
             {
-                var tokenString = await _authService.GenerateTokenString(identityUser);
+                string token = await _authService.GenerateToken(identityUser);
+                string role = await _authService.GetUserRole(identityUser);
+
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddHours(2)
+                };
+                base.Response.Cookies.Append("jwt_token", token, cookieOptions);
+
                 return Ok(new
                 {
-                    token = tokenString,
                     id = identityUser.EmployeeId,
+                    role = role
                 });
             }
             return Unauthorized(new { msg = "Неправильна пошта або пароль" });
@@ -38,14 +50,40 @@ namespace LabAPI.Controllers
             var identityUser = await _authService.LoginPatient(request);
             if (identityUser != null)
             {
-                var tokenString = await _authService.GenerateTokenString(identityUser);
+                string token = await _authService.GenerateToken(identityUser);
+                string role = await _authService.GetUserRole(identityUser);
+
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddHours(2)
+                };
+                base.Response.Cookies.Append("jwt_token", token, cookieOptions);
+
                 return Ok(new
                 {
-                    token = tokenString,
                     id = identityUser.PatientId,
+                    role = role
                 });
             }
             return Unauthorized(new { msg = "Неправильний номер або пароль" });
+        }
+
+        [Authorize]
+        [HttpPost("Logout")]
+        public IActionResult Logout()
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+            };
+            base.Response.Cookies.Delete("jwt_token", cookieOptions);
+
+            return Ok();
         }
     }
 }

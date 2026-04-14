@@ -7,6 +7,7 @@ namespace LabAPI.Services
     {
         Task<AppUser?> LoginEmployee(LoginEmployeeRequest request);
         Task<AppUser?> LoginPatient(LoginPatientRequest request);
-        Task<string> GenerateTokenString(AppUser identityUser);
+        Task<string> GenerateToken(AppUser identityUser);
+        Task<string> GetUserRole(AppUser identityUser);
     }
 }
