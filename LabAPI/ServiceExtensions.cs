@@ -1,17 +1,14 @@
 ﻿using LabAPI.Models;
 using LabAPI.Services;
+using LabAPI.Constants;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Hangfire;
 
 namespace LabAPI;
-public static class CorsPolicies
-{
-    public const string Angular = "Angular";
-}
-
 public static class ServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
@@ -21,9 +18,14 @@ public static class ServiceExtensions
             options.UseSqlServer(config["ConnectionStrings:DefaultConnection"]);
         });
 
+        services.AddHangfire(cfg => 
+            cfg.UseSqlServerStorage(config["ConnectionStrings:HangfireConnection"]));
+        services.AddHangfireServer();
+
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOfficeService, OfficeService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<ISampleService, SampleService>();
 
         return services;
     }

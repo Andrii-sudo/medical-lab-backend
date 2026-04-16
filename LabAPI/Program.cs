@@ -1,4 +1,7 @@
+using Hangfire;
 using LabAPI;
+using LabAPI.BackgroundJobs;
+using LabAPI.Constants;
 using Microsoft.AspNetCore.Builder;
 using Swashbuckle.AspNetCore;
 
@@ -25,6 +28,8 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/openapi/v1.json", "Lab API v1");
     });
+
+    app.UseHangfireDashboard();
 }
 
 app.UseHttpsRedirection();
@@ -33,6 +38,7 @@ app.UseCors(CorsPolicies.Angular);
 app.UseAuthentication();
 app.UseAuthorization();
 
+RecurringJobs.Register();
 
 app.MapControllers();
 
