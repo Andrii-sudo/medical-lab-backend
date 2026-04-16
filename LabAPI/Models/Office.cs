@@ -22,4 +22,6 @@ public partial class Office
     public virtual ICollection<EmployeeShift> EmployeeShifts { get; set; } = new List<EmployeeShift>();
 
     public virtual ICollection<OfficeSchedule> OfficeSchedules { get; set; } = new List<OfficeSchedule>();
+
+    public virtual ICollection<LabOrder> LabOrders { get; set; } = new List<LabOrder>();
 }

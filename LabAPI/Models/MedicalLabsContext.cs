@@ -215,6 +215,13 @@ public partial class MedicalLabsContext : IdentityDbContext<AppUser, IdentityRol
                 .HasForeignKey(d => d.PatientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("lab_order_patient_fkey");
+
+            entity.Property(e => e.OfficeId).HasColumnName("office_id");
+
+            entity.HasOne(d => d.Office).WithMany(p => p.LabOrders)
+                .HasForeignKey(d => d.OfficeId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("lab_order_office_fkey");
         });
 
         modelBuilder.Entity<Office>(entity =>

@@ -483,6 +483,7 @@ internal static class DataGenerator
                     Status = orderStatus,
                     TotalPrice = (int)chosenAnalyses.Sum(a => a.Price),
                     Patient = patient,
+                    Office = office,
                     OrderAnalyses = chosenAnalyses.Select(a => new OrderAnalysis { Analysis = a }).ToList()
                 };
 

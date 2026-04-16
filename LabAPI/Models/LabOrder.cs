@@ -20,4 +20,7 @@ public partial class LabOrder
     public virtual Patient Patient { get; set; } = null!;
 
     public virtual ICollection<Sample> Samples { get; set; } = new List<Sample>();
+
+    public int OfficeId { get; set; }
+    public virtual Office Office { get; set; } = null!;
 }
