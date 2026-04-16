@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace LabAPI.Services;
 
-public class DashboardService: IDashboardService
+public class DashboardService : IDashboardService
 {
     private readonly MedicalLabsContext _context;
 
