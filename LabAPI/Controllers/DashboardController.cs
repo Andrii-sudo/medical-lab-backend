@@ -19,7 +19,7 @@ public class DashboardController : ControllerBase
     }
 
     [Authorize(Roles = Roles.Employee)]
-    [HttpGet("EmployeeStats")]
+    [HttpGet("employee/stats")]
     public async Task<IActionResult> GetEmployeeStats(int officeId)
     {
         var employeeStats = new EmployeeStatsResponse
@@ -35,14 +35,14 @@ public class DashboardController : ControllerBase
     }
 
     [Authorize(Roles = Roles.Employee)]
-    [HttpGet("EmployeeShifts")]
+    [HttpGet("employee/shifts")]
     public async Task<IActionResult> GetEmployeeShifts(int employeeId)
     {
         return Ok(await _dashboardService.GetEmployeeSchedule(employeeId));
     }
 
     [Authorize(Roles = Roles.Employee)]
-    [HttpGet("EmployeeSamples")]
+    [HttpGet("employee/samples")]
     public async Task<IActionResult> GetEmployeeSamples(int officeId)
     {
         return Ok(await _dashboardService.GetEmployeeSamples(officeId));

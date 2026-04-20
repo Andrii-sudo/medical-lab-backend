@@ -5,8 +5,7 @@ namespace LabAPI.Services;
 
 public interface IAuthService
 {
-    Task<AppUser?> LoginEmployee(LoginEmployeeRequest request);
-    Task<AppUser?> LoginPatient(LoginPatientRequest request);
-    Task<string> GenerateToken(AppUser identityUser);
-    Task<string> GetUserRole(AppUser identityUser);
+    Task<AppUser?> LoginEmployee(EmployeeLoginRequest request);
+    Task<AppUser?> LoginPatient(PatientLoginRequest request);
+    Task<(string, string)> GenerateToken(AppUser identityUser);
 }
