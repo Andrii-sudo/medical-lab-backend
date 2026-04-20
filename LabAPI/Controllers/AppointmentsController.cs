@@ -30,4 +30,29 @@ public class AppointmentsController : ControllerBase
 
         return Created();
     }
+
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]
+    [HttpGet]
+    public async Task<IActionResult> GetDailyAppointments(int officeId, DateOnly date)
+    {
+        return Ok(await _appointmentService.GetDailyAppointments(officeId, date));
+    }
+
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]
+    [HttpPut("{appId}/advance")]
+    public async Task<IActionResult> AdvanceAppointment(int appId)
+    {
+        await _appointmentService.AdvanceAppointment(appId);
+
+        return Ok();
+    }
+
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]
+    [HttpPut("{appId}/cancel")]
+    public async Task<IActionResult> CancelAppointment(int appId)
+    {
+        await _appointmentService.CancelAppointment(appId);
+
+        return Ok();
+    }
 }
