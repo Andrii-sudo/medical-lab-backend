@@ -27,7 +27,7 @@ public class OfficesController : ControllerBase
         {
             return NoContent();
         }
-
+        
         return Ok(officeResponse);    
     }
 
@@ -38,5 +38,34 @@ public class OfficesController : ControllerBase
         var officesResponse = await _officeService.GetEmployeeOffices(employeeId);
 
         return Ok(officesResponse);
+    }
+
+    [HttpGet("Cities")]
+    public async Task<IActionResult> GetCities()
+    {
+        var cities = await _officeService.GetOfficeCities();
+
+        return Ok(cities);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetOffices(string city, string? officeType)
+    {
+        var offices = await _officeService.GetOffices(city, officeType);
+
+        return Ok(offices);
+    }
+
+    [HttpGet("AvailableSlots")]
+    public async Task<IActionResult> GetAvailableSlots(int officeId, DateOnly date)
+    {
+        var offices = await _officeService.GetAvailableSlots(officeId, date);
+
+        if (offices == null)
+        {
+            return NoContent();
+        }
+
+        return Ok(offices);
     }
 }

@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using LabAPI.DTOs;
+﻿using LabAPI.DTOs;
 using LabAPI.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabAPI.Services;
@@ -82,4 +80,64 @@ public class OfficeService: IOfficeService
 
         return offices;
     }
+
+    public async Task<List<string>> GetOfficeCities()
+    {
+        var officeCities = await _context.Offices
+            .Select(o => o.City)
+            .Distinct()
+            .ToListAsync();
+
+        return officeCities;
+    }
+
+    public async Task<List<OfficeByCityResponse>> GetOffices(string city, string? officeType = null)
+    {
+        var offices = await _context.Offices
+            .Where(o => o.City == city
+                && (officeType == null || o.Type == officeType || o.Type == "mixed"))
+            .Select(o => new OfficeByCityResponse
+            {
+                Id = o.Id,
+                Number = o.Number,
+                Address = o.Address
+            }).ToListAsync();
+
+        return offices;
+    }
+
+    public async Task<List<TimeOnly>?> GetAvailableSlots(int officeId, DateOnly date, int slotSpace = 15)
+    {
+        var schedule = await _context.OfficeSchedules
+            .Where(os => os.OfficeId == officeId 
+                && os.DayOfWeek == (byte)date.DayOfWeek)
+            .FirstOrDefaultAsync();
+
+        if (schedule == null) return null;
+
+        var takenSlots = await _context.Appointments
+            .Where(a => a.OfficeId == officeId
+                && a.VisitDate == date)
+            .Select(a => a.VisitTime)
+            .ToListAsync();
+
+
+        var slots = new List<TimeOnly>();
+        var current = schedule.OpenTime;
+        var now = TimeOnly.FromDateTime(DateTime.Now);
+
+        while (current < schedule.CloseTime)
+        { 
+            if (!takenSlots.Contains(current)
+                && (date > DateOnly.FromDateTime(DateTime.Today) || current > now))
+            {
+                slots.Add(current);
+            }
+
+            current = current.AddMinutes(slotSpace);
+        }
+
+        return slots;
+    }
+
 }
