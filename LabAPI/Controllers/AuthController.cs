@@ -17,54 +17,36 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    [HttpPost("LoginEmployee")]
-    public async Task<IActionResult> LoginEmployee(LoginEmployeeRequest request)
+    [HttpPost("employee/login")]
+    public async Task<IActionResult> LoginEmployee(EmployeeLoginRequest request)
     {
-        var identityUser = await _authService.LoginEmployee(request);
-        if (identityUser != null)
+        var user = await _authService.LoginEmployee(request);
+        if (user != null)
         {
-            string token = await _authService.GenerateToken(identityUser);
-            string role = await _authService.GetUserRole(identityUser);
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(2)
-            };
-            base.Response.Cookies.Append("jwt_token", token, cookieOptions);
+            var (token, role) = await _authService.GenerateToken(user);
+            SetTokenCookie(token);
 
             return Ok(new
             {
-                id = identityUser.EmployeeId,
+                id = user.EmployeeId,
                 role = role
             });
         }
         return Unauthorized(new { msg = "Неправильна пошта або пароль" });
     }
 
-    [HttpPost("LoginPatient")]
-    public async Task<IActionResult> LoginPatient(LoginPatientRequest request)
+    [HttpPost("patient/login")]
+    public async Task<IActionResult> LoginPatient(PatientLoginRequest request)
     {
-        var identityUser = await _authService.LoginPatient(request);
-        if (identityUser != null)
+        var user = await _authService.LoginPatient(request);
+        if (user != null)
         {
-            string token = await _authService.GenerateToken(identityUser);
-            string role = await _authService.GetUserRole(identityUser);
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(2)
-            };
-            base.Response.Cookies.Append("jwt_token", token, cookieOptions);
+            var (token, role) = await _authService.GenerateToken(user);
+            SetTokenCookie(token);
 
             return Ok(new
             {
-                id = identityUser.PatientId,
+                id = user.PatientId,
                 role = role
             });
         }
@@ -72,7 +54,7 @@ public class AuthController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("Logout")]
+    [HttpPost("logout")]
     public IActionResult Logout()
     {
         var cookieOptions = new CookieOptions
@@ -84,5 +66,17 @@ public class AuthController : ControllerBase
         base.Response.Cookies.Delete("jwt_token", cookieOptions);
 
         return Ok();
+    }
+
+    private void SetTokenCookie(string token)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddHours(2)
+        };
+        base.Response.Cookies.Append("jwt_token", token, cookieOptions);
     }
 }

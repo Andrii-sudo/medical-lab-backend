@@ -12,18 +12,21 @@ namespace LabAPI.Controllers;
 [ApiController]
 public class AppointmentsController : ControllerBase
 {
-    private readonly IAppointmentService _appoinmentService;
+    private readonly IAppointmentService _appointmentService;
 
     public AppointmentsController(IAppointmentService appointmentService)
     {
-        _appoinmentService = appointmentService;
+        _appointmentService = appointmentService;
     }
 
     [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]
     [HttpPost]
     public async Task<IActionResult> CreateAppointment(CreateAppointmentRequest request)
     {
-        await _appoinmentService.Create(request);
+        if (!await _appointmentService.CreateAppointment(request))
+        {
+            return BadRequest(new { msg = "Цей час для вже занятий" });
+        }
 
         return Created();
     }

@@ -70,7 +70,7 @@ public class PatientService : IPatientService
         };
     }
 
-    public async Task<bool> AddPatient(CreatePatientRequest request)
+    public async Task<bool> CreatePatient(CreatePatientRequest request)
     {
         if (await _context.Patients
             .Where(p => p.Phone == request.Phone)
@@ -94,7 +94,7 @@ public class PatientService : IPatientService
         return true;
     }
 
-    public async Task<bool> EditPatient(UpdatePatientRequest request)
+    public async Task<bool> UpdatePatient(UpdatePatientRequest request)
     {
         if (await _context.Patients
             .Where(p => p.Id != request.Id

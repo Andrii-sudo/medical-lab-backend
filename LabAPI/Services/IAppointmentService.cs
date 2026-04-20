@@ -3,5 +3,5 @@
 namespace LabAPI.Services;
 public interface IAppointmentService
 {
-    Task Create(CreateAppointmentRequest request);
+    Task<bool> CreateAppointment(CreateAppointmentRequest request);
 }

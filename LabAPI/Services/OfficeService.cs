@@ -58,14 +58,14 @@ public class OfficeService: IOfficeService
 
     public async Task<List<OfficeResponse>> GetEmployeeOffices(int employeeId)
     {
-        var officesId = await _context.EmployeeSchedules
+        var officesId = _context.EmployeeSchedules
             .Where(es => es.EmployeeId == employeeId)
             .Select(es => es.OfficeId)
             .Union(
                 _context.EmployeeShifts
                     .Where(es => es.EmployeeId == employeeId && es.OfficeId != null)
-                    .Select(es => es.OfficeId ?? -1)
-            ).ToListAsync();
+                    .Select(es => es.OfficeId ?? -1) // nullable
+            );
 
         var offices = (await _context.Offices
             .Where(o => officesId.Contains(o.Id))

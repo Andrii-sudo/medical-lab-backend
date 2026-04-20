@@ -16,6 +16,6 @@ public class CreateAppointmentRequest
     public required TimeOnly VisitTime { get; set; }
 
     [Required]
-    public required string purpose { get; set; }
+    public required string Purpose { get; set; }
 }
 

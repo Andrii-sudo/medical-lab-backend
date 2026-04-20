@@ -21,41 +21,42 @@ public class AuthService : IAuthService
         _config = config;
     }
 
-    public async Task<AppUser?> LoginEmployee(LoginEmployeeRequest request)
+    public async Task<AppUser?> LoginEmployee(EmployeeLoginRequest request)
     {
-        var identityUser = await _userManager.Users
+        var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-        if (identityUser != null
-            && await _userManager.CheckPasswordAsync(identityUser, request.Password))
+        if (user != null
+            && await _userManager.CheckPasswordAsync(user, request.Password))
         {
-            return identityUser;
+            return user;
         }
 
         return null;
     }
 
-    public async Task<AppUser?> LoginPatient(LoginPatientRequest request)
+    public async Task<AppUser?> LoginPatient(PatientLoginRequest request)
     {
-        var identityUser = await _userManager.Users
+        var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.PhoneNumber == request.Phone);
 
-        if (identityUser != null
-            && await _userManager.CheckPasswordAsync(identityUser, request.Password))
+        if (user != null
+            && await _userManager.CheckPasswordAsync(user, request.Password))
         {
-            return identityUser;
+            return user;
         }
 
         return null;
     }
 
-    public async Task<string> GenerateToken(AppUser identityUser)
+    public async Task<(string, string)> GenerateToken(AppUser user)
     {
+        var userRole = (await _userManager.GetRolesAsync(user)).Single();
         var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, identityUser.Id.ToString()),
-                new Claim(ClaimTypes.Role, await GetUserRole(identityUser))
-            };
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, userRole)
+        };
 
         string jwtKey = _config["Jwt:Key"]
             ?? throw new Exception("JWT Key is missing in secrets");
@@ -74,11 +75,6 @@ public class AuthService : IAuthService
             signingCredentials: signingCredentials);
 
 
-        return new JwtSecurityTokenHandler().WriteToken(securityToken);
-    }
-
-    public async Task<string> GetUserRole(AppUser identityUser)
-    {
-        return (await _userManager.GetRolesAsync(identityUser)).Single();
+        return (new JwtSecurityTokenHandler().WriteToken(securityToken), userRole);
     }
 }

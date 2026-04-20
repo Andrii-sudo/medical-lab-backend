@@ -29,10 +29,10 @@ public class PatientsController : ControllerBase
     }
 
     [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]
-    [HttpPost("AddPatient")]
-    public async Task<IActionResult> AddPatient(CreatePatientRequest request)
+    [HttpPost]
+    public async Task<IActionResult> CreatePatient(CreatePatientRequest request)
     {
-        if (await _patientService.AddPatient(request) == false)
+        if (await _patientService.CreatePatient(request) == false)
         {
             return BadRequest(new { msg = "Пацієнт з таким номером вже існує" });
         }
@@ -41,10 +41,10 @@ public class PatientsController : ControllerBase
     }
 
     [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]
-    [HttpPut("EditPatient")]
-    public async Task<IActionResult> EditPatient(UpdatePatientRequest request)
+    [HttpPut]
+    public async Task<IActionResult> UpdatePatient(UpdatePatientRequest request)
     {
-        if (await _patientService.EditPatient(request) == false)
+        if (await _patientService.UpdatePatient(request) == false)
         {
             return BadRequest(new { msg = "Пацієнт з таким номером вже існує" });
         }

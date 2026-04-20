@@ -18,7 +18,7 @@ public class OfficesController : ControllerBase
     }
 
     [Authorize(Roles = Roles.Employee)]
-    [HttpGet("CurrentEmployeeOffice")]
+    [HttpGet("employee/current")]
     public async Task<IActionResult> GetCurrentEmployeeOffice(int employeeId)
     {
         var officeResponse = await _officeService.GetCurrentEmployeeOffice(employeeId);
@@ -32,7 +32,7 @@ public class OfficesController : ControllerBase
     }
 
     [Authorize(Roles = Roles.Employee)]
-    [HttpGet("EmployeeOffices")]
+    [HttpGet("employee")]
     public async Task<IActionResult> GetEmployeeOffices(int employeeId)
     {
         var officesResponse = await _officeService.GetEmployeeOffices(employeeId);
@@ -40,7 +40,7 @@ public class OfficesController : ControllerBase
         return Ok(officesResponse);
     }
 
-    [HttpGet("Cities")]
+    [HttpGet("cities")]
     public async Task<IActionResult> GetCities()
     {
         var cities = await _officeService.GetOfficeCities();
@@ -56,16 +56,16 @@ public class OfficesController : ControllerBase
         return Ok(offices);
     }
 
-    [HttpGet("AvailableSlots")]
+    [HttpGet("{officeId}/available-slots")]
     public async Task<IActionResult> GetAvailableSlots(int officeId, DateOnly date)
     {
-        var offices = await _officeService.GetAvailableSlots(officeId, date);
+        var slots = await _officeService.GetAvailableSlots(officeId, date);
 
-        if (offices == null)
+        if (slots == null)
         {
             return NoContent();
         }
 
-        return Ok(offices);
+        return Ok(slots);
     }
 }

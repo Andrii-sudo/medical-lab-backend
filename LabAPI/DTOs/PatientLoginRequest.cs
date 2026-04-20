@@ -2,11 +2,12 @@
 
 namespace LabAPI.DTOs;
 
-public class LoginEmployeeRequest
+public class PatientLoginRequest
 {
     [Required]
-    public required string Email { get; set; }
+    public required string Phone { get; set; }
 
     [Required]
     public required string Password { get; set; }
 }
+
