@@ -25,7 +25,22 @@ public class PatientsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetPatients(int page, int pageSize, string? searchTerm)
     {
-        return Ok(await _patientService.GetPatients(page, pageSize, searchTerm));
+        var (patients, pageCount) = await _patientService.GetPatients(page, pageSize, searchTerm);
+
+        return Ok(new 
+        {
+            Patients = patients, 
+            PageCount = pageCount 
+        });
+    }
+
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchPatients(string searchTerm, int take)
+    {
+        var patients = await _patientService.GetPatients(searchTerm, take);
+
+        return Ok(patients);
     }
 
     [Authorize(Roles = $"{Roles.Admin},{Roles.Employee}")]

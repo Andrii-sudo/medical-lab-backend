@@ -28,7 +28,8 @@ public static class ServiceExtensions
         services.AddScoped<ISampleService, SampleService>();
         services.AddScoped<IPatientService, PatientService>();
         services.AddScoped<IAppointmentService, AppointmentService>();
-
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IAnalysesService, AnalysesService>();
 
         return services;
     }
