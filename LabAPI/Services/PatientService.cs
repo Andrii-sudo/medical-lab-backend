@@ -42,7 +42,7 @@ public class PatientService : IPatientService
         return patients;
     }
 
-    public async Task<PatientsResponse> GetPatients(int page, int pageSize, string? searchTerm)
+    public async Task<(List<PatientResponse>, int)> GetPatients(int page, int pageSize, string? searchTerm)
     {
         var query = _context.Patients.AsQueryable();
 
@@ -56,18 +56,48 @@ public class PatientService : IPatientService
         }
 
         int totalCount = await query.CountAsync();
-
+        int pageCount = (int)Math.Ceiling((double)totalCount / pageSize);
+        
         var patients = await query
+            .Select(p => new PatientResponse
+            {
+                Id = p.Id,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                MiddleName = p.MiddleName,
+                BirthDate = p.BirthDate,
+                Gender = p.Gender,
+                Phone = p.Phone,
+                Email = p.Email
+            })
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
 
-        return new PatientsResponse
-        {
-            Patients = patients,
-            PageCount = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        return (patients, pageCount);
+    }
+
+    public async Task<List<PatientResponse>> GetPatients(string searchTerm, int take)
+    {
+        var query = GetPatientsBySearchTerm(searchTerm);
+
+        var patients = await query
+            .Select(p => new PatientResponse
+            {
+                Id = p.Id,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                MiddleName = p.MiddleName,
+                BirthDate = p.BirthDate,
+                Gender = p.Gender,
+                Phone = p.Phone,
+                Email = p.Email
+            })
+            .Take(take)
+            .ToListAsync();
+
+        return patients;
     }
 
     public async Task<bool> CreatePatient(CreatePatientRequest request)
