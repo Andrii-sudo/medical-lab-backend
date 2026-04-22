@@ -1,0 +1,77 @@
+﻿using LabAPI.Constants;
+using LabAPI.DTOs;
+using LabAPI.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace LabAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class ResultsController : ControllerBase
+{
+    private readonly IResultService _resultService;
+
+    public ResultsController(IResultService resultService)
+    {
+        _resultService = resultService;
+    }
+
+
+    [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
+    [HttpGet("by-order")]
+    public async Task<IActionResult> GetResultsByOrder(int page, int pageSize, string? orderNumber)
+    {
+        var query = _resultService.GetResults();
+        if (!string.IsNullOrWhiteSpace(orderNumber))
+        {
+            query = _resultService.GetResultsByOrder(orderNumber);
+        }
+
+        var (results, pageCount) = await _resultService.GetPage(query, page, pageSize);
+
+        return Ok(new
+        {
+            Results = results,
+            PageCount = pageCount
+        });
+    }
+
+    [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
+    [HttpGet("by-patient")]
+    public async Task<IActionResult> GetResultsByPatient(int page, int pageSize, string? patient)
+    {
+        var query = _resultService.GetResults();
+        if (!string.IsNullOrWhiteSpace(patient))
+        {
+            query = _resultService.GetResultsByPatient(patient);
+        }
+
+        var (results, pageCount) = await _resultService.GetPage(query, page, pageSize);
+
+        return Ok(new
+        {
+            Results = results,
+            PageCount = pageCount
+        });
+    }
+
+    [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
+    [HttpGet("{resultId}/parameters")]
+    public async Task<IActionResult> GetResultParameters(int resultId)
+    {
+        return Ok(await _resultService.GetResultParameters(resultId));
+    }
+
+    [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
+    [HttpPut("parameters")]
+    public async Task<IActionResult> UpdateResultParameters(List<UpdateResultParameterRequest> request)
+    {
+        if (!await _resultService.UpdateResultParameters(request))
+        {
+            return BadRequest();
+        }
+        return Ok();
+    }
+}
