@@ -58,17 +58,23 @@ public class ResultsController : ControllerBase
     }
 
     [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
-    [HttpGet("{resultId}/parameters")]
-    public async Task<IActionResult> GetResultParameters(int resultId)
+    [HttpGet("{resultId}")]
+    public async Task<IActionResult> GetResultInfo(int resultId)
     {
-        return Ok(await _resultService.GetResultParameters(resultId));
+        var (parameters, conclusion) = await _resultService.GetResultInfo(resultId);
+
+        return Ok(new
+        {
+            Parameters = parameters,
+            Conclusion = conclusion
+        });
     }
 
     [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
-    [HttpPut("parameters")]
-    public async Task<IActionResult> UpdateResultParameters(List<UpdateResultParameterRequest> request)
+    [HttpPut()]
+    public async Task<IActionResult> UpdateResultInfo(UpdateResultRequest request)
     {
-        if (!await _resultService.UpdateResultParameters(request))
+        if (!await _resultService.UpdateResultInfo(request))
         {
             return BadRequest();
         }

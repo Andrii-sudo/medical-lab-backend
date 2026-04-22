@@ -83,7 +83,7 @@ public class ResultService : IResultService
         return (results, pageCount);
     }
 
-    public async Task<List<ResultParameterResponse>> GetResultParameters(int resultId)
+    public async Task<(List<ResultParameterResponse>, string?)> GetResultInfo(int resultId)
     {
         var patientInfo = await _context.Results
             .Where(r => r.Id == resultId)
@@ -122,14 +122,17 @@ public class ResultService : IResultService
             })
             .ToListAsync();
 
-        return resultParameters;
+        string? conclusion = (await _context.Results.FindAsync(resultId))?.Conclusion;
+
+        return (resultParameters, conclusion);
     }
 
-    public async Task<bool> UpdateResultParameters(List<UpdateResultParameterRequest> request)
+    public async Task<bool> UpdateResultInfo(UpdateResultRequest request)
     {
-        if (!request.Any()) return false;
+        var resParameters = request.Parameters;
+        if (!resParameters.Any()) return false;
 
-        var ids = request.Select(r => r.Id).ToList();
+        var ids = resParameters.Select(r => r.Id).ToList();
 
         var paramsToUpdate = await _context.ParameterResults
             .Include(pr => pr.Result)
@@ -159,7 +162,7 @@ public class ResultService : IResultService
 
         foreach (var p in paramsToUpdate)
         {
-            var reqValue = request.First(r => r.Id == p.Id).Value;
+            var reqValue = resParameters.First(r => r.Id == p.Id).Value;
             p.MeasuredValue = reqValue;
 
             var norm = p.Parameter.ParameterNorms
@@ -183,6 +186,7 @@ public class ResultService : IResultService
         }
 
         result.Status = hasAbnormal ? ResultStatuses.Abnormal : ResultStatuses.Normal;
+        result.Conclusion = request.Conclusion;
         result.ResultDate = DateTime.Now;
 
         await _context.SaveChangesAsync();
