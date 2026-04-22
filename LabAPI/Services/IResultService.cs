@@ -8,6 +8,6 @@ public interface IResultService
     IQueryable<ResultResponse> GetResultsByOrder(string orderNumber);
     IQueryable<ResultResponse> GetResultsByPatient(string patient);
     Task<(List<ResultResponse>, int)> GetPage(IQueryable<ResultResponse> resultsQuery, int page, int pageSize);
-    Task<List<ResultParameterResponse>> GetResultParameters(int resultId);
-    Task<bool> UpdateResultParameters(List<UpdateResultParameterRequest> request);
+    Task<(List<ResultParameterResponse>, string?)> GetResultInfo(int resultId);
+    Task<bool> UpdateResultInfo(UpdateResultRequest request);
 }
