@@ -1,5 +1,5 @@
 ﻿namespace LabAPI.Constants;
-public class SampleStatuses
+public static class SampleStatuses
 {
     public const string Waiting = "waiting";
     

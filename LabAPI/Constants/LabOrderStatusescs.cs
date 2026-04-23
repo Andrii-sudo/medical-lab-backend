@@ -1,6 +1,6 @@
 ﻿namespace LabAPI.Constants;
 
-public class LabOrderStatuses
+public static class LabOrderStatuses
 {
     public const string Unpaid = "unpaid";
 
