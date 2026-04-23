@@ -68,4 +68,21 @@ public class OfficesController : ControllerBase
 
         return Ok(slots);
     }
+
+    [HttpGet("{officeId}/schedule/{dayOfWeek}")]
+    public async Task<IActionResult> GetOfficeWorkingHours(int officeId, byte dayOfWeek)
+    {
+        var hours = await _officeService.GetOfficeWorkingHours(officeId, dayOfWeek);
+
+        if (hours == null)
+        {
+            return NoContent();
+        }
+
+        return Ok(new
+        {
+            OpenTime = hours.Value.OpenTime,
+            CloseTime = hours.Value.CloseTime
+        });
+    }
 }

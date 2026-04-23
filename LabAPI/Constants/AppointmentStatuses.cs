@@ -1,5 +1,5 @@
 ﻿namespace LabAPI.Constants;
-public class AppointmentStatuses
+public static class AppointmentStatuses
 {
     public const string Pending = "pending";
 

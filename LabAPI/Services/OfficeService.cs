@@ -140,4 +140,17 @@ public class OfficeService: IOfficeService
         return slots;
     }
 
+    public async Task<(TimeOnly OpenTime, TimeOnly CloseTime)?> GetOfficeWorkingHours(int officeId, byte dayOfWeek)
+    {
+        var schedule = await _context.OfficeSchedules
+            .Where(os => os.OfficeId == officeId && os.DayOfWeek == dayOfWeek)
+            .Select(os => new
+            {
+                OpenTime = os.OpenTime,
+                CloseTime = os.CloseTime
+            })
+            .FirstOrDefaultAsync();
+
+        return schedule != null ? (schedule.OpenTime, schedule.CloseTime) : null;
+    }
 }
