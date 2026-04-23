@@ -31,7 +31,7 @@ public static class ServiceExtensions
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IAnalysesService, AnalysesService>();
         services.AddScoped<IResultService, ResultService>();
-
+        services.AddScoped<IEmployeeService, EmployeeService>();
 
         return services;
     }
@@ -43,6 +43,10 @@ public static class ServiceExtensions
         services.AddIdentity<AppUser, IdentityRole<int>>(options =>
         {
             options.Password.RequiredLength = 6;
+            options.Password.RequireNonAlphanumeric = false; 
+            options.Password.RequireLowercase = false;       
+            options.Password.RequireUppercase = false;       
+            options.Password.RequireDigit = false;
         }).AddEntityFrameworkStores<MedicalLabsContext>()
         .AddDefaultTokenProviders();
 
