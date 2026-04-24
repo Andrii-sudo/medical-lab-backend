@@ -1,4 +1,5 @@
 ﻿using LabAPI.Constants;
+using LabAPI.DTOs;
 using LabAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -84,5 +85,44 @@ public class OfficesController : ControllerBase
             OpenTime = hours.Value.OpenTime,
             CloseTime = hours.Value.CloseTime
         });
+    }
+
+    [HttpGet("page")]
+    public async Task<IActionResult> GetOfficesPage(int page, int pageSize, string? city, string? officeType)
+    {
+        var (offices, pageCount) = await _officeService.GetOfficesPage(page, pageSize, city, officeType);
+
+        return Ok(new
+        {
+            Offices = offices,
+            PageCount = pageCount
+        });
+    }
+
+    [Authorize(Roles = Roles.Admin)]
+    [HttpPost]
+    public async Task<IActionResult> CreateOffice(CreateOfficeRequest request)
+    {
+        await _officeService.CreateOffice(request);
+
+        return Ok();
+    }
+
+    
+    [HttpGet("{officeId}/schedule")]
+    public async Task<IActionResult> GetOfficeSchedule(int officeId)
+    {
+        var schedule = await _officeService.GetOfficeSchedule(officeId);
+
+        return Ok(schedule);
+    }
+
+    [Authorize(Roles = Roles.Admin)]
+    [HttpPut("{officeId}/schedule")]
+    public async Task<IActionResult> UpdateOfficeSchedule(int officeId, List<OfficeScheduleDto> schedule)
+    {
+        await _officeService.UpdateOfficeSchedule(officeId, schedule);
+
+        return Ok();
     }
 }
