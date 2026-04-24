@@ -1,4 +1,5 @@
-﻿using LabAPI.DTOs;
+﻿using LabAPI.Constants;
+using LabAPI.DTOs;
 using LabAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +20,7 @@ public class OfficeService: IOfficeService
 
         var employeeShift = await _context.EmployeeShifts
             .SingleOrDefaultAsync(es => es.EmployeeId == employeeId
-                && es.ShiftType == "work"
+                && es.ShiftType == ShiftTypes.Work
                 && es.ShiftDate == today
                 && es.StartTime <= now
                 && es.EndTime >= now);
@@ -95,7 +96,7 @@ public class OfficeService: IOfficeService
     {
         var offices = await _context.Offices
             .Where(o => o.City == city
-                && (officeType == null || o.Type == officeType || o.Type == "mixed"))
+                && (officeType == null || o.Type == officeType || o.Type == OfficeTypes.Mixed))
             .Select(o => new OfficeByCityResponse
             {
                 Id = o.Id,
@@ -152,5 +153,93 @@ public class OfficeService: IOfficeService
             .FirstOrDefaultAsync();
 
         return schedule != null ? (schedule.OpenTime, schedule.CloseTime) : null;
+    }
+
+    public async Task<(List<OfficeResponse>, int)> GetOfficesPage(int page, int pageSize, string? city, string? officeType)
+    {
+        var query = _context.Offices.AsQueryable();
+
+        if (!string.IsNullOrEmpty(city))
+        {
+            query = query.Where(o => o.City == city);
+        }
+
+        if (!string.IsNullOrEmpty(officeType))
+        {
+            query = query.Where(o => o.Type == officeType || o.Type == OfficeTypes.Mixed);
+        }
+
+        int totalCount = await query.CountAsync();
+        int pageCount = (int)Math.Ceiling((double)totalCount / pageSize);
+
+        var offices = await query
+            .OrderBy(o => o.City)
+            .ThenBy(o => o.Number)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(o => new OfficeResponse
+            {
+                Id = o.Id,
+                Number = o.Number,
+                City = o.City,
+                Address = o.Address,
+                Type = o.Type
+            })
+            .ToListAsync();
+
+        return (offices, pageCount);
+    }
+
+    public async Task CreateOffice(CreateOfficeRequest request)
+    {
+        var maxNumber = await _context.Offices
+            .Where(o => o.City == request.City)
+            .MaxAsync(o => (short?)o.Number) ?? 0;
+
+        var newOffice = new Office
+        {
+            City = request.City,
+            Address = request.Address,
+            Type = request.Type,
+            Number = (short)(maxNumber + 1)
+        };
+
+        await _context.Offices.AddAsync(newOffice);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<OfficeScheduleDto>> GetOfficeSchedule(int officeId)
+    {
+        var schedule = await _context.OfficeSchedules
+            .Where(os => os.OfficeId == officeId)
+            .Select(os => new OfficeScheduleDto
+            {
+                DayOfWeek = os.DayOfWeek,
+                OpenTime = os.OpenTime,
+                CloseTime = os.CloseTime
+            })
+            .ToListAsync();
+
+        return schedule;
+    }
+
+    public async Task UpdateOfficeSchedule(int officeId, List<OfficeScheduleDto> schedule)
+    {
+        var existingSchedule = await _context.OfficeSchedules
+            .Where(os => os.OfficeId == officeId)
+            .ToListAsync();
+
+        _context.OfficeSchedules.RemoveRange(existingSchedule);
+
+        var newSchedule = schedule.Select(s => new OfficeSchedule
+        {
+            OfficeId = officeId,
+            DayOfWeek = s.DayOfWeek,
+            OpenTime = s.OpenTime!.Value,
+            CloseTime = s.CloseTime!.Value
+        });
+
+        await _context.OfficeSchedules.AddRangeAsync(newSchedule);
+        await _context.SaveChangesAsync();
     }
 }
