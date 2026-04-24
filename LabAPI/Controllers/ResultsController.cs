@@ -4,6 +4,7 @@ using LabAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LabAPI.Controllers;
 
@@ -57,7 +58,7 @@ public class ResultsController : ControllerBase
         });
     }
 
-    [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
+    [Authorize]
     [HttpGet("{resultId}")]
     public async Task<IActionResult> GetResultInfo(int resultId)
     {
@@ -79,5 +80,25 @@ public class ResultsController : ControllerBase
             return BadRequest();
         }
         return Ok();
+    }
+
+    [Authorize(Roles = Roles.Patient)]
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyResults(int page, int pageSize)
+    {
+        // Безпечно дістаємо ID пацієнта прямо з токена авторизації
+        var appIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(appIdStr, out int patientId))
+        {
+            return Unauthorized();
+        }
+
+        var (results, pageCount) = await _resultService.GetMyResults(patientId, page, pageSize);
+
+        return Ok(new
+        {
+            Results = results,
+            PageCount = pageCount
+        });
     }
 }

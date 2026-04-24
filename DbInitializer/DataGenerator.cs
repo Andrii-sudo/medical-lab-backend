@@ -394,7 +394,7 @@ internal static class DataGenerator
             .RuleFor(p => p.Phone, f =>
                 f.Phone.PhoneNumber("0#########"));
 
-        var patients = patientsFaker.Generate(1000);
+        var patients = patientsFaker.Generate(3000);
 
         context.Patients.AddRange(patients);
         
@@ -413,9 +413,9 @@ internal static class DataGenerator
         string[] purposes = ["first_visit", "sample", "results"];
         var today = DateOnly.FromDateTime(DateTime.Today);
 
-        foreach (var patient in patients.Take(400))
+        foreach (var patient in patients.Take(3000))
         {
-            int count = _random.Next(1, 4);
+            int count = _random.Next(2, 18);
             LabOrder? lastOrder = null;
 
             for (int i = 0; i < count; i++)
@@ -472,9 +472,13 @@ internal static class DataGenerator
                 var visitDateTime = visitDate.ToDateTime(new TimeOnly(hour, minute));
                 var chosenAnalyses = analyses.OrderBy(_ => _random.Next()).Take(_random.Next(1, 3)).ToList();
 
-                var orderDate = level == 3
+                var rawOrderDate = level == 3
                     ? visitDateTime.AddDays(-_random.Next(2, 10))
                     : visitDateTime.AddDays(-_random.Next(1, 5));
+                var orderDate = rawOrderDate > DateTime.Now
+                    ? DateTime.Now.AddHours(-_random.Next(1, 72))
+                    : rawOrderDate;
+
                 string orderStatus = level switch { 1 => "unpaid", 2 => "in_progress", 3 => "completed", _ => "pending" };
 
                 lastOrder = new LabOrder

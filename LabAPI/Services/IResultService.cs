@@ -10,4 +10,6 @@ public interface IResultService
     Task<(List<ResultResponse>, int)> GetPage(IQueryable<ResultResponse> resultsQuery, int page, int pageSize);
     Task<(List<ResultParameterResponse>, string?)> GetResultInfo(int resultId);
     Task<bool> UpdateResultInfo(UpdateResultRequest request);
+
+    Task<(List<ResultResponse>, int)> GetMyResults(int appUserId, int page, int pageSize);
 }
