@@ -69,6 +69,6 @@ public class AnalysesService : IAnalysesService
            .Take(pageSize)
            .ToListAsync();
 
-        return (analyses, totalCount);
+        return (analyses, pageCount);
     }
 }

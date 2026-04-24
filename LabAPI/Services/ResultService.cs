@@ -193,4 +193,36 @@ public class ResultService : IResultService
         
         return true;
     }
+
+    public async Task<(List<ResultResponse>, int)> GetMyResults(int appUserId, int page, int pageSize)
+    {
+        var patientId = await _context.Users
+            .Where(u => u.Id == appUserId)
+            .Select(u => u.PatientId)
+            .FirstOrDefaultAsync();
+
+        if (patientId == null || patientId == 0)
+        {
+            return (new List<ResultResponse>(), 0);
+        }
+
+        var query = _context.Results
+           .Where(r => r.Sample.Status != SampleStatuses.Waiting
+                    && r.Sample.Status != SampleStatuses.Expired
+                    && r.Sample.OrderNumberNavigation.PatientId == patientId) // Використовуємо знайдений ID
+           .Select(r => new ResultResponse
+           {
+               Id = r.Id,
+               Status = r.Status,
+               SampleType = r.Analysis.SampleType,
+               AnalysisName = r.Analysis.Name,
+               OrderNumber = r.Sample.OrderNumber,
+               PatientFirstName = r.Sample.OrderNumberNavigation.Patient.FirstName,
+               PatientLastName = r.Sample.OrderNumberNavigation.Patient.LastName,
+               PatientPhone = r.Sample.OrderNumberNavigation.Patient.Phone
+           })
+           .OrderByDescending(r => r.Id);
+
+        return await GetPage(query, page, pageSize);
+    }
 }
