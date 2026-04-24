@@ -25,4 +25,16 @@ public class AnalysesController : ControllerBase
 
         return Ok(analyses);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAnalyses(int page, int pageSize, string? searchTerm)
+    {
+        var (analyses, pageCount) = await _analysesService.GetAnalyses(page, pageSize, searchTerm);
+
+        return Ok(new
+        {
+            Analyses = analyses,
+            PageCount = pageCount
+        });
+    }
 }
