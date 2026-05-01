@@ -209,7 +209,7 @@ public class ResultService : IResultService
         var query = _context.Results
            .Where(r => r.Sample.Status != SampleStatuses.Waiting
                     && r.Sample.Status != SampleStatuses.Expired
-                    && r.Sample.OrderNumberNavigation.PatientId == patientId) // Використовуємо знайдений ID
+                    && r.Sample.OrderNumberNavigation.PatientId == patientId) 
            .Select(r => new ResultResponse
            {
                Id = r.Id,

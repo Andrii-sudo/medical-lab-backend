@@ -44,6 +44,7 @@ public class AppointmentService : IAppointmentService
         var appointments = await _context.Appointments
             .Where(a => a.OfficeId == officeId
                 && a.VisitDate == date)
+            .OrderBy(a => a.VisitTime)
             .Select(a => new AppointmentResponse
             {
                 Id = a.Id,

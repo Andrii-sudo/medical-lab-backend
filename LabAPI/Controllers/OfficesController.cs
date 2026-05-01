@@ -18,7 +18,7 @@ public class OfficesController : ControllerBase
         _officeService = officeService;
     }
 
-    [Authorize(Roles = Roles.Employee)]
+    [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
     [HttpGet("employee/current")]
     public async Task<IActionResult> GetCurrentEmployeeOffice(int employeeId)
     {
@@ -32,7 +32,7 @@ public class OfficesController : ControllerBase
         return Ok(officeResponse);    
     }
 
-    [Authorize(Roles = Roles.Employee)]
+    [Authorize(Roles = ($"{Roles.Admin},{Roles.Employee}"))]
     [HttpGet("employee")]
     public async Task<IActionResult> GetEmployeeOffices(int employeeId)
     {

@@ -1,5 +1,7 @@
-﻿using LabAPI.DTOs;
+﻿using LabAPI.Constants;
+using LabAPI.DTOs;
 using LabAPI.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabAPI.Services;
@@ -7,10 +9,12 @@ namespace LabAPI.Services;
 public class PatientService : IPatientService
 {
     private readonly MedicalLabsContext _context;
-    
-    public PatientService(MedicalLabsContext context)
+    private readonly UserManager<AppUser> _userManager;
+
+    public PatientService(MedicalLabsContext context, UserManager<AppUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     public IQueryable<Patient> GetPatientsBySearchTerm(string searchTerm)
@@ -109,19 +113,47 @@ public class PatientService : IPatientService
             return false;
         }
 
-        await _context.Patients.AddAsync(new Patient 
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            MiddleName = request.MiddleName,
-            Gender = request.Gender,
-            BirthDate = request.BirthDate,
-            Phone = request.Phone,
-            Email = request.Email
-        });
-        await _context.SaveChangesAsync();
-        
-        return true;
+            var patient = new Patient
+            {
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                MiddleName = request.MiddleName,
+                Gender = request.Gender,
+                BirthDate = request.BirthDate,
+                Phone = request.Phone,
+                Email = request.Email
+            };
+            await _context.Patients.AddAsync(patient);
+            await _context.SaveChangesAsync();
+
+            var user = new AppUser
+            {
+                UserName = request.Phone,
+                PhoneNumber = request.Phone,
+                PatientId = patient.Id,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            };
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+
+            await _userManager.AddToRoleAsync(user, Roles.Patient);
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 
     public async Task<bool> UpdatePatient(UpdatePatientRequest request)
